@@ -12,30 +12,39 @@ permissions:
 
 concurrency:
   group: "pages"
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install pygbag (builder)
+      # Optional but removes the two warnings
+      - name: Install system deps (ffmpeg)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install pygbag (and black)
         run: |
           python -m pip install --upgrade pip
-          pip install pygbag
+          pip install "pygbag>=0.9" black
 
+      # Build the web bundle from your game folder
       - name: Build web bundle with pygbag
-        working-directory: game
+        working-directory: ./game
         run: |
           python -m pygbag .
 
-      - name: Upload Pages artifact (game/build/web)
+      # Publish the /game/build/web directory
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: game/build/web
