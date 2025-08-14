@@ -4,7 +4,7 @@
 OVERCLOCK — a neon cyberpunk circuit shooter in one Python file (pygame only)
 
 Theme:
-  You are a small‑but‑mighty digital hero in the matrix. Clear
+  You are a small-but-mighty digital hero in the matrix. Clear
   viruses, bugs, and worms while canceling hostile/natural power surges
   racing down the circuits.
 
@@ -423,7 +423,7 @@ class Hero:
         self.pos = pygame.Vector2(pos)
         self.vel = pygame.Vector2()
         self.r = HERO_R
-        self.hp = HERO_HP
+               self.hp = HERO_HP
         self.ifr = 0.0
         self.cd = 0.0
         self.face = pygame.Vector2(1,0)
@@ -554,7 +554,8 @@ class Game:
         self.emit_row = SurgeEmitter("row")
         self.emit_col = SurgeEmitter("col")
 
-        self.sfx.play("menu")
+        # NOTE: moved the initial menu chime off __init__ to a user action (see handle_events)
+        # to comply with browser autoplay policies.
 
     # ---- Traces & Background ----
     def build_traces(self):
@@ -662,7 +663,6 @@ class Game:
             return
 
         keys = pygame.key.get_pressed()
-        tnow = pygame.time.get_ticks() / 1000.0
 
         # Hero
         self.hero.update(dt, keys)
@@ -820,10 +820,8 @@ class Game:
         for s in list(self.surges):
             if s.owner in ("player", "oc"):
                 # Enemy hit
-                hit_any = False
                 for e in list(self.enemies):
                     if e.pos.distance_to(s.pos) <= (e.r + s.r):
-                        hit_any = True
                         died = e.take_damage(s.dmg)
                         self.sfx.play("hit")
                         self.spark(s.pos, NEON_CYAN if s.owner=="player" else NEON_YELLOW, 10)
@@ -845,7 +843,6 @@ class Game:
                             if s in self.surges:
                                 self.surges.remove(s)
                             break
-                # If it didn't hit anything, continue flying
                 continue
             else:
                 # Enemy or natural surge hitting hero
@@ -995,6 +992,8 @@ class Game:
                     self.build_sector(*SECTOR_START_ENEMIES)
                     self.state = "play"
                 if self.state == "menu" and e.key in (pygame.K_SPACE, pygame.K_RETURN):
+                    # play first sound AFTER user gesture for browser autoplay safety
+                    self.sfx.play("menu")
                     self.score = 0
                     self.sector = 1
                     self.build_sector(*SECTOR_START_ENEMIES)
@@ -1007,6 +1006,8 @@ class Game:
                     self.state = "play"
             if e.type == pygame.MOUSEBUTTONDOWN:
                 if self.state == "menu" and e.button == 1:
+                    # play first sound AFTER user gesture for browser autoplay safety
+                    self.sfx.play("menu")
                     self.score = 0
                     self.sector = 1
                     self.build_sector(*SECTOR_START_ENEMIES)
